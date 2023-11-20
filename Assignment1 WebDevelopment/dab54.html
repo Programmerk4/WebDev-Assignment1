@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Asignment1 dab 54</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <!-- This was used just to make the table more easy to read -->
+    <style>
+        table {
+          border-collapse: collapse;
+          width: 100%;
+          text-align: center;
+        }
+        th, td {
+          border: 1px solid black;
+          padding: 8px;
+        }
+        th {
+          background-color: #ddd;
+        }
+        tr:nth-child(even) {
+          background-color: #f2f2f2;
+        }
+      </style>
+    <script>
+        $(document).ready(function() {
+            const tableBody = $("#countries");
+
+            // Fetch and populate the regions dropdown
+            $.get("https://www.cs.kent.ac.uk/people/staff/yh/api/country-data/countries/regions", function(data) {
+                const regions = JSON.parse(data);
+                const selector = $("#regions");
+
+                for (let i = 0; i < regions.length; i++) {
+                    selector.append("<option value='" + regions[i] + "'>" + regions[i] + "</option>");
+                }
+            });
+
+            // Event listener for region selection change
+            $("#regions").change(function() {
+                var selectedRegion = $(this).val();
+
+                // Fetch and populate the countries table
+                $.get("https://www.cs.kent.ac.uk/people/staff/yh/api/country-data/countries/region/" + selectedRegion, function(data) {
+                    var countries = JSON.parse(data);
+                    const tbody = $("#countries");
+                    // empty the table before repopulating it
+                    tbody.empty();
+                    const p = $("#information");
+                    p.empty();
+                    var temparea = 0;
+                    var tempcountry = "";
+                    var count = 0;
+                    /*
+                    Hold value of currently biggest area country in temp area, goes through the list in order
+                    if a value is bigger, it becomes the new temp area
+                    */
+                    for (let i = 0; i < countries.length; i++) {
+                        count++
+                        if (countries[i].area > temparea) {
+                            temparea = countries[i].area;
+                            tempcountry = countries[i].name;
+                        }
+                    }
+
+                    /*
+                    Hold value of currently biggest Population country in temp pop, goes through the list in order
+                    if a value is bigger, it becomes the new temp pop
+                    */
+                    var largestPop = "";
+                    var tempPop = "";
+                    for (let i = 0; i < countries.length; i++) {
+                        if (countries[i].population > tempPop) {
+                            tempPop = countries[i].population;
+                            largestPop = countries[i].name;
+                        }
+                    }
+                    p.append("In " + selectedRegion + " there are " + count + " countries ")
+                    p.append("The largest Country by population " + largestPop + ". ")
+                    p.append(tempcountry + " is the biggest country by area \n")
+
+                    for (let i = 0; i < countries.length; i++) {
+                        var density = countries[i].population / countries[i].area;
+
+                        tbody.append("<tr><td>" + countries[i].code
+                            + "</td><td><img src='" + countries[i].flag + "' alt='" + countries[i].name
+                            + "' width='160' height='90'></td><td>" + countries[i].name
+                            + "</td><td>" + countries[i].capital
+                            + "</td><td>" + countries[i].population
+                            + "</td><td>" + countries[i].area
+                            + "</td><td>" + Number.parseFloat(density).toFixed(1)
+                            + "</td></tr>");
+                    }
+                });
+            });
+
+            /*goes through all countries
+            does country have included character?
+            add to the new table
+            */
+
+            $("#button").on("click", function() {
+                var searchQuery = $("#search").val();
+                console.log(searchQuery);
+                $.get("https://www.cs.kent.ac.uk/people/staff/yh/api/country-data/countries/region/" + $("#regions").val(), function(data) {
+                    var countries = JSON.parse(data);
+                    const tbody = $("#countries");
+                    // empty the table before repopulating it
+                    tbody.empty();
+                    for (let i = 0; i < countries.length; i++) {
+                        if (countries[i].name.includes(searchQuery)) {
+                            var density = countries[i].population / countries[i].area;
+
+                            tbody.append("<tr><td>" + countries[i].code
+                                + "</td><td><img src='" + countries[i].flag + "' alt='" + countries[i].name
+                                + "' width='160' height='90'></td><td>" + countries[i].name
+                                + "</td><td>" + countries[i].capital
+                                + "</td><td>" + countries[i].population
+                                + "</td><td>" + countries[i].area
+                                + "</td><td>" + Number.parseFloat(density).toFixed(1)
+                                + "</td></tr>");
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <select id="regions" name="regionSelect"></select>
+    <ul id="information"> </ul>
+    <form id="searchForm">
+        <label for="fullName">Full Name:</label>
+        <input type="text" id="search" name="Search" required>
+        <button type="button" id="button">Search</button>
+    </form>
+
+    <table border="1">
+        <thead>
+            <th>Code</th>
+            <th>Flag</th>
+            <th>Name</th>
+            <th>Capital</th>
+            <th>Population</th>
+            <th>Area</th>
+            <th>Density</th>
+        </thead>
+        <tbody id="countries" name="countriesSelect"></tbody>
+    </table>
+</body>
+</html>
